@@ -18,23 +18,23 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="h-screen w-64 bg-gray-800 text-white flex flex-col">
+    <div className="h-screen w-full bg-gray-800 text-white flex flex-col">
       <div className="p-4">
         <h1 className="text-2xl font-bold">Menu</h1>
       </div>
       <nav className="flex flex-col gap-4 p-4">
-        <Link href="/" className="hover:underline">
-          Home
+        <Link href="/" legacyBehavior>
+          <a className="hover:underline">Home</a>
         </Link>
         {!user && (
-          <Link href="/user/signin" className="hover:underline">
-            Sign In
+          <Link href="/user/signin" legacyBehavior>
+            <a className="hover:underline">Sign In</a>
           </Link>
         )}
         {user && (
           <>
-            <Link href="/user/profile" className="hover:underline">
-              Profile
+            <Link href="/user/profile" legacyBehavior>
+              <a className="hover:underline">Profile</a>
             </Link>
             <button
               onClick={handleSignOut}

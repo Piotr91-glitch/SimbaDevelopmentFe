@@ -22,16 +22,16 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
         {/* AuthProvider otacza całą aplikację */}
         <AuthProvider>
-          <aside className="w-1/4 bg-gray-800 text-white p-4">
-            <Sidebar />
-          </aside>
-
-          <main className="flex-1 bg-gray-100 p-4">{children}</main>
-
+          <div className="flex flex-row flex-1">
+            <aside className="w-1/4 bg-gray-800 text-white p-4">
+              <Sidebar />
+            </aside>
+            <main className="flex-1 bg-gray-100 p-4">{children}</main>
+          </div>
           <footer className="bg-gray-800 text-white p-4 text-center">
             &copy; {new Date().getFullYear()} MyApp. All Rights Reserved.
           </footer>

@@ -21,12 +21,12 @@ export default function VerifyEmail() {
     return (
         <div className="flex items-center justify-center h-screen bg-gray-100">
             <div className="p-8 bg-white shadow-lg rounded-lg">
-                <h1 className="text-2xl font-semibold mb-4">Email Verification</h1>
-                <p>
+                <h1 className="text-2xl font-semibold mb-4 text-red-950">Email Verification</h1>
+                <p className=" text-red-950">
                     Email not verified. Please verify your email by clicking on the link
                     sent to your address: <strong>{user?.email}</strong>.
                 </p>
-                <p className="mt-4">
+                <p className="mt-4 text-black">
                     Once verified, you can log back in.
                 </p>
             </div>

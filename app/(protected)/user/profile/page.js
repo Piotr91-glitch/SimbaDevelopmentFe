@@ -1,27 +1,74 @@
 'use client';
+
 import { updateProfile } from "firebase/auth";
 import { useAuth } from "@app/lib/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { db } from "@app/lib/firebase"; // Import bazy danych Firestore
+import { getDoc, doc, setDoc } from "firebase/firestore"; // Funkcje Firestore
+import { useForm } from "react-hook-form"; // Import React Hook Form
 
 export default function ProfileForm() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    const displayName = e.target.displayName.value.trim();
-    const photoURL = e.target.photoURL.value.trim();
+  const {
+    register,
+    setValue,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      email: user?.email || "",
+      displayName: user?.displayName || "",
+      photoURL: user?.photoURL || "",
+    },
+  });
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user) {
+        try {
+          const snapshot = await getDoc(doc(db, "users", user?.uid));
+          if (snapshot.exists()) {
+            const address = snapshot.data().address || {};
+            setValue("city", address.city || "");
+            setValue("street", address.street || "");
+            setValue("zipCode", address.zipCode || "");
+          }
+        } catch (err) {
+          console.error("Error fetching user data:", err);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [user, setValue]);
+
+  const onSubmit = async (data) => {
+    const { displayName, photoURL, city, street, zipCode } = data;
 
     setLoading(true);
     setError(null);
 
     try {
+      // Aktualizacja danych profilu użytkownika w Firebase Authentication
       await updateProfile(user, {
         displayName,
         photoURL,
       });
-      alert("Profile updated successfully!");
+
+      // Zapis dodatkowych danych (adres) do Firestore
+      const docRef = doc(db, "users", user.uid);
+      await setDoc(docRef, {
+        address: {
+          city,
+          street,
+          zipCode,
+        },
+      }, { merge: true });
+
+      alert("Profile and address updated successfully!");
     } catch (err) {
       setError("Failed to update profile. Please try again.");
       console.error(err);
@@ -33,7 +80,7 @@ export default function ProfileForm() {
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-md">
       <h2 className="text-2xl font-semibold mb-4 text-center">Twój Profil</h2>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         {error && (
           <p className="text-red-500 text-sm mb-4 border border-red-300 p-2 rounded">
             {error}
@@ -45,10 +92,8 @@ export default function ProfileForm() {
           </label>
           <input
             id="displayName"
-            name="displayName"
-            defaultValue={user?.displayName || ""}
-            placeholder="Wpisz swoje imię"
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            {...register("displayName")}
+            className="mt-1 block w-full px-3 py-2 border bg-black rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           />
         </div>
         <div className="mb-4">
@@ -57,10 +102,8 @@ export default function ProfileForm() {
           </label>
           <input
             id="photoURL"
-            name="photoURL"
-            defaultValue={user?.photoURL || ""}
-            placeholder="Dodaj URL do zdjęcia"
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            {...register("photoURL")}
+            className="mt-1 block w-full px-3 py-2 border bg-black rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           />
         </div>
         <div className="mb-4">
@@ -69,10 +112,40 @@ export default function ProfileForm() {
           </label>
           <input
             id="email"
-            name="email"
-            defaultValue={user?.email || ""}
             disabled
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-gray-200 rounded-md shadow-sm sm:text-sm"
+            {...register("email")}
+            className="mt-1 block w-full px-3 py-2 border bg-black rounded-md shadow-sm sm:text-sm"
+          />
+        </div>
+        {/* Nowe pola adresowe */}
+        <div className="mb-4">
+          <label htmlFor="street" className="block text-sm font-medium text-gray-700">
+            Ulica
+          </label>
+          <input
+            id="street"
+            {...register("street")}
+            className="mt-1 block w-full px-3 py-2 border bg-black rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          />
+        </div>
+        <div className="mb-4">
+          <label htmlFor="city" className="block text-sm font-medium text-gray-700">
+            Miasto
+          </label>
+          <input
+            id="city"
+            {...register("city")}
+            className="mt-1 block w-full px-3 py-2 border bg-black rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          />
+        </div>
+        <div className="mb-6">
+          <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700">
+            Kod pocztowy
+          </label>
+          <input
+            id="zipCode"
+            {...register("zipCode")}
+            className="mt-1 block w-full px-3 py-2 border bg-black rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           />
         </div>
         <button
